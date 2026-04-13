@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子发票</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "SimSun", "宋体", serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .invoice-container {
+            width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border: 2px solid #c41e3a;
+            padding: 15px 20px;
+        }
+        .header {
+            text-align: center;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .title {
+            font-size: 26px;
+            color: #c41e3a;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+        }
+        .title-line {
+            width: 280px;
+            height: 2px;
+            background: #c41e3a;
+            margin: 0 auto;
+            position: relative;
+        }
+        .title-line::before,
+        .title-line::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 1px;
+            background: #c41e3a;
+            top: -3px;
+        }
+        .title-line::before {
+            left: 0;
+        }
+        .title-line::after {
+            right: 0;
+        }
+        .stamp {
+            width: 90px;
+            height: 90px;
+            border: 2px solid #c41e3a;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 8px auto;
+            position: relative;
+        }
+        .stamp::before {
+            content: '';
+            position: absolute;
+            width: 76px;
+            height: 76px;
+            border: 1px solid #c41e3a;
+            border-radius: 50%;
+        }
+        .stamp-top {
+            font-size: 10px;
+            color: #c41e3a;
+            margin-bottom: 2px;
+        }
+        .stamp-center {
+            font-size: 14px;
+            color: #c41e3a;
+            font-weight: bold;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 2px;
+        }
+        .stamp-bottom {
+            font-size: 10px;
+            color: #c41e3a;
+            margin-top: 2px;
+        }
+        .invoice-info {
+            position: absolute;
+            right: 0;
+            top: 0;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .info-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+        .info-label {
+            color: #333;
+        }
+        .info-value {
+            color: #333;
+            min-width: 140px;
+        }
+        .party-info {
+            display: flex;
+            border: 1px solid #c41e3a;
+            margin-bottom: 0;
+        }
+        .party-section {
+            flex: 1;
+            display: flex;
+            border-right: 1px solid #c41e3a;
+        }
+        .party-section:last-child {
+            border-right: none;
+        }
+        .party-label {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            padding: 15px 8px;
+            font-size: 13px;
+            color: #333;
+            border-right: 1px solid #c41e3a;
+            letter-spacing: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .party-content {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 13px;
+            line-height: 2;
+        }
+        .party-row {
+            display: flex;
+            align-items: baseline;
+        }
+        .party-row-label {
+            color: #333;
+            white-space: nowrap;
+        }
+        .party-row-value {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #c41e3a;
+            padding: 6px 8px;
+            text-align: center;
+            height: 32px;
+        }
+        th {
+            background: #fff;
+            color: #333;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .col-name { width: 14%; }
+        .col-spec { width: 12%; }
+        .col-unit { width: 10%; }
+        .col-qty { width: 10%; }
+        .col-price { width: 12%; }
+        .col-amount { width: 12%; }
+        .col-tax-rate { width: 14%; }
+        .col-tax { width: 12%; }
+        .total-row td {
+            font-weight: normal;
+        }
+        .total-label {
+            text-align: center;
+            letter-spacing: 30px;
+            padding-left: 30px;
+        }
+        .amount-row {
+            display: flex;
+            border: 1px solid #c41e3a;
+            border-top: none;
+        }
+        .amount-section {
+            flex: 1;
+            padding: 8px 12px;
+            border-right: 1px solid #c41e3a;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        .amount-section:last-child {
+            border-right: none;
+            justify-content: flex-end;
+        }
+        .amount-label {
+            color: #333;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        .amount-value {
+            color: #333;
+        }
+        .remark-row {
+            display: flex;
+            border: 1px solid #c41e3a;
+            border-top: none;
+            min-height: 50px;
+        }
+        .remark-label {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            padding: 10px 8px;
+            font-size: 13px;
+            color: #333;
+            border-right: 1px solid #c41e3a;
+            letter-spacing: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remark-content {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 13px;
+            color: #333;
+        }
+        .issuer-row {
+            border: 1px solid #c41e3a;
+            border-top: none;
+            padding: 8px 15px;
+            font-size: 13px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="invoice-info">
+                <div class="info-row">
+                    <span class="info-label">发票号码：</span>
+                    <span class="info-value">2026041300793066</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">开票日期：</span>
+                    <span class="info-value">2026-04-13</span>
+                </div>
+            </div>
+            <div class="title">电子发票（3）</div>
+            <div class="title-line"></div>
+            <div class="stamp">
+                <span class="stamp-top">★</span>
+                <span class="stamp-center">电子发票</span>
+                <span class="stamp-bottom">监制章</span>
+            </div>
+        </div>
+
+        <div class="party-info">
+            <div class="party-section">
+                <div class="party-label">购买方信息</div>
+                <div class="party-content">
+                    <div class="party-row">
+                        <span class="party-row-label">名称：</span>
+                        <span class="party-row-value">阳光小卖部</span>
+                    </div>
+                    <div class="party-row">
+                        <span class="party-row-label">统一社会信用代码/纳税人识别号：</span>
+                        <span class="party-row-value"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="party-section">
+                <div class="party-label">销售方信息</div>
+                <div class="party-content">
+                    <div class="party-row">
+                        <span class="party-row-label">名称：</span>
+                        <span class="party-row-value">深圳晨光酒类批发有限公司</span>
+                    </div>
+                    <div class="party-row">
+                        <span class="party-row-label">统一社会信用代码/纳税人识别号：</span>
+                        <span class="party-row-value">91440300MA5D...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-name">项目名称</th>
+                    <th class="col-spec">规格型号</th>
+                    <th class="col-unit">单位</th>
+                    <th class="col-qty">数量</th>
+                    <th class="col-price">单价</th>
+                    <th class="col-amount">金额</th>
+                    <th class="col-tax-rate">税率/征收率</th>
+                    <th class="col-tax">税额</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>*饮料*百事可乐</td>
+                    <td></td>
+                    <td>箱</td>
+                    <td>10</td>
+                    <td>60.00</td>
+                    <td>600.00</td>
+                    <td>13.0000%</td>
+                    <td>78.00</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" class="total-label">合计</td>
+                    <td></td>
+                    <td></td>
+                    <td>600.00</td>
+                    <td></td>
+                    <td>78.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="amount-row">
+            <div class="amount-section">
+                <span class="amount-label">价税合计（大写）</span>
+                <span class="amount-value">☆ 陆佰柒拾捌元整</span>
+            </div>
+            <div class="amount-section">
+                <span class="amount-label">（小写）</span>
+                <span class="amount-value">¥678.00</span>
+            </div>
+        </div>
+
+        <div class="remark-row">
+            <div class="remark-label">备注</div>
+            <div class="remark-content"></div>
+        </div>
+
+        <div class="issuer-row">
+            开票人：
+        </div>
+    </div>
+</body>
+</html>
